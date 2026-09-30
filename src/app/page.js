@@ -3,6 +3,7 @@ import SelectedWork from "@/components/SelectedWork";
 import AboutSection from "@/components/AboutSection";
 import ServicesSection from "@/components/ServicesSection";
 import ContactSection from "@/components/ContactSection";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -46,6 +47,7 @@ export default function Home() {
       <AboutSection />
       <ServicesSection />
       <ContactSection />
+      <Footer/>
     </main>
   );
 }
