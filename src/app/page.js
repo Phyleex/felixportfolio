@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import SelectedWork from "@/components/SelectedWork";
 import AboutSection from "@/components/AboutSection";
 import ServicesSection from "@/components/ServicesSection";
-// import ContactSection from "@/components/ContactSection";
+import ContactSection from "@/components/ContactSection";
 
 export default function Home() {
   return (
@@ -45,7 +45,7 @@ export default function Home() {
       <SelectedWork />
       <AboutSection />
       <ServicesSection />
-      {/* <ContactSection /> */}
+      <ContactSection />
     </main>
   );
 }
