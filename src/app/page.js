@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import SelectedWork from "@/components/SelectedWork";
+import AboutSection from "@/components/AboutSection";
 
 export default function Home() {
   return (
@@ -40,6 +41,7 @@ export default function Home() {
       </section>
 
       <SelectedWork />
+      <AboutSection />
     </main>
   );
 }
