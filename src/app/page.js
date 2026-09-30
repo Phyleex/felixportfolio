@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import SelectedWork from "@/components/SelectedWork";
 
 export default function Home() {
   return (
@@ -37,6 +38,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <SelectedWork />
     </main>
   );
 }
