@@ -1,5 +1,7 @@
 import { projectType } from "./project";
+import { brandType } from "./brand";
 
 export const schema = {
-  types: [projectType],
+  types: [projectType, brandType],
+
 };

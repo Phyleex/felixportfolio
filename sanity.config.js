@@ -15,7 +15,7 @@ import {schema} from './src/sanity/schemaTypes'
 import {structure} from './src/sanity/structure'
 
 export default defineConfig({
-  basePath: "/cms",
+  basePath: "/studio",
   projectId,
   dataset,
   form: {

@@ -1,55 +1,42 @@
 import Link from "next/link";
+import Image from "next/image";
+import { client } from "@/sanity/lib/client";
+import { PROJECTS_QUERY } from "@/sanity/lib/queries";
 
-const projects = [
-  {
-    title: "Brand Identity",
-    category: "Branding",
-    year: "2026",
-    number: "01",
-    description: "Building distinctive visual identities for memorable brands.",
-    gradient: "from-violet-600 via-purple-600 to-indigo-700",
-    glow: "group-hover:shadow-violet-500/10",
-    accent: "text-violet-300",
-  },
-  {
-    title: "Social Campaign",
-    category: "Social Media",
-    year: "2026",
-    number: "02",
-    description:
-      "Creating engaging digital campaigns that connect with people.",
-    gradient: "from-fuchsia-600 via-pink-600 to-rose-600",
-    glow: "group-hover:shadow-pink-500/10",
-    accent: "text-pink-300",
-  },
-  {
-    title: "Creative Direction",
-    category: "Art Direction",
-    year: "2026",
-    number: "03",
-    description: "Turning ambitious ideas into purposeful visual stories.",
-    gradient: "from-cyan-500 via-blue-600 to-violet-700",
-    glow: "group-hover:shadow-cyan-500/10",
-    accent: "text-cyan-300",
-  },
+const gradients = [
+  "from-violet-600 via-purple-600 to-indigo-700",
+  "from-fuchsia-600 via-pink-600 to-rose-600",
+  "from-cyan-500 via-blue-600 to-violet-700",
 ];
 
-export default function SelectedWork() {
+const accents = ["text-violet-300", "text-pink-300", "text-cyan-300"];
+
+async function getFeaturedProjects() {
+  try {
+    return await client.fetch(PROJECTS_QUERY);
+  } catch (error) {
+    console.error("Failed to fetch featured projects:", error);
+    return [];
+  }
+}
+
+export default async function SelectedWork() {
+  const projects = await getFeaturedProjects();
+
   return (
     <section
       id="work"
       className="relative isolate overflow-hidden bg-[#15132f] px-6 py-24 text-white sm:px-10 lg:px-16 lg:py-32"
     >
-      {/* Background effects */}
       <div className="pointer-events-none absolute -left-40 top-20 -z-10 h-96 w-96 rounded-full bg-violet-600/10 blur-[120px]" />
       <div className="pointer-events-none absolute -right-40 bottom-0 -z-10 h-96 w-96 rounded-full bg-fuchsia-600/10 blur-[120px]" />
 
       <div className="mx-auto max-w-7xl">
-        {/* Section heading */}
         <div className="mb-14 flex flex-col gap-7 md:mb-16 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
               <span className="h-2 w-2 rounded-full bg-gradient-to-r from-violet-400 to-pink-400" />
+
               <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-violet-200 sm:text-xs">
                 Ideas brought to life
               </p>
@@ -69,65 +56,90 @@ export default function SelectedWork() {
           </p>
         </div>
 
-        {/* Project cards */}
-        <div className="grid gap-5 lg:grid-cols-3">
-          {projects.map((project) => (
-            <article
-              key={project.number}
-              className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-2xl ${project.glow} sm:p-7`}
-            >
-              {/* Colorful project visual */}
-              <div
-                className={`relative flex aspect-[5/3] items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br ${project.gradient}`}
-              >
-                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full border border-white/20 transition duration-500 group-hover:scale-125" />
-                <div className="absolute -bottom-16 -left-10 h-48 w-48 rounded-full border border-white/20 transition duration-500 group-hover:scale-110" />
-                <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-2xl" />
+        {projects.length === 0 ? (
+          <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-6 py-12 text-center">
+            <h3 className="text-xl font-bold">Our work is coming soon.</h3>
 
-                <span className="relative text-7xl font-black tracking-[-0.08em] text-white/90 transition duration-500 group-hover:scale-110 sm:text-8xl">
-                  {project.number}
-                </span>
+            <p className="mt-3 text-sm text-slate-400">
+              Featured projects will appear here once they are published.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project, index) => {
+              const projectSlug = project.slug?.current || project.slug || "";
 
-                <span className="absolute bottom-4 left-4 rounded-full border border-white/20 bg-black/15 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white backdrop-blur-md">
-                  LEEX / WORK
-                </span>
-
-                <span className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10 text-lg text-white backdrop-blur-md transition duration-300 group-hover:rotate-45 group-hover:bg-white group-hover:text-violet-700">
-                  ↗
-                </span>
-              </div>
-
-              {/* Project details */}
-              <div className="mt-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-[0.2em] ${project.accent}`}
+              return (
+                <Link
+                  key={project._id}
+                  href={`/portfolio/${projectSlug}`}
+                  className="block h-full"
+                >
+                  <article
+                    className={`group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-2xl sm:p-6 ${gradients[index % gradients.length]}`}
                   >
-                    {project.category}
-                  </span>
+                    <div className="relative aspect-[5/3] overflow-hidden rounded-xl bg-slate-800">
+                      {project.coverImage ? (
+                        <Image
+                          src={project.coverImage}
+                          alt={project.title}
+                          fill
+                          unoptimized
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-5xl font-black text-white/50">
+                          {String(index + 1).padStart(2, "0")}
+                        </div>
+                      )}
 
-                  <span className="text-xs text-slate-500">{project.year}</span>
-                </div>
+                      <span className="absolute bottom-4 left-4 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white backdrop-blur-md">
+                        LEEX / WORK
+                      </span>
 
-                <h3 className="mt-4 text-2xl font-bold tracking-tight transition-colors group-hover:text-violet-200 sm:text-3xl">
-                  {project.title}
-                </h3>
+                      <span className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-black/30 text-lg text-white backdrop-blur-md transition duration-300 group-hover:rotate-45">
+                        ↗
+                      </span>
+                    </div>
 
-                <p className="mt-3 text-sm leading-6 text-slate-400">
-                  {project.description}
-                </p>
+                    <div className="mt-6">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-[0.2em] ${accents[index % accents.length]}`}
+                        >
+                          {project.category}
+                        </span>
 
-                <div className="mt-6 h-px w-full bg-white/10">
-                  <div
-                    className={`h-px w-0 bg-gradient-to-r ${project.gradient} transition-all duration-500 group-hover:w-full`}
-                  />
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+                        <span className="text-xs text-slate-500">
+                          {project.year || ""}
+                        </span>
+                      </div>
 
-        {/* View all */}
+                      <h3 className="mt-4 text-2xl font-bold tracking-tight transition-colors group-hover:text-violet-200 sm:text-3xl">
+                        {project.title}
+                      </h3>
+
+                      <p className="mt-3 text-sm leading-6 text-slate-400">
+                        {project.description ||
+                          "Creative work developed by LEEX Creative Studio."}
+                      </p>
+
+                      <div className="mt-6 h-px w-full bg-white/10">
+                        <div
+                          className={`h-px w-0 bg-gradient-to-r ${
+                            gradients[index % gradients.length]
+                          } transition-all duration-500 group-hover:w-full`}
+                        />
+                      </div>
+                    </div>
+                  </article>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
         <div className="mt-12 flex flex-col gap-5 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-400">
             Thoughtful ideas. Distinctive execution.
