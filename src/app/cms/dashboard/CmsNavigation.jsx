@@ -19,6 +19,13 @@ const sections = [
     href: "/cms/dashboard/brands",
     icon: "◇",
   },
+ 
+  {
+    title: "Tools",
+    href: "/cms/dashboard/tools",
+    icon: "⚒",
+  },
+
   {
     title: "Services",
     href: "/cms/dashboard/services",
@@ -44,11 +51,11 @@ const sections = [
 export default function CmsNavigation() {
   const pathname = usePathname();
 
-  const isDashboard = pathname === "/cms/dashboard";
+  // const isDashboard = pathname === "/cms/dashboard";
 
-  if (isDashboard) {
-    return null;
-  }
+  // if (isDashboard) {
+  //   return null;
+  // }
 
   return (
     <>
