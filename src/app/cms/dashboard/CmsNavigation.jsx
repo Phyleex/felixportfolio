@@ -60,7 +60,7 @@ export default function CmsNavigation() {
   return (
     <>
       {/* DESKTOP SIDEBAR */}
-      <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-[#17142f] p-5 text-white">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-[#17142f] p-5 text-white lg:flex">
         {" "}
         {/* BRAND */}
         <Link
