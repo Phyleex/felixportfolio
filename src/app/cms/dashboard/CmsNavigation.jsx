@@ -60,7 +60,8 @@ export default function CmsNavigation() {
   return (
     <>
       {/* DESKTOP SIDEBAR */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-[#17142f] p-5 text-white lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-[#17142f] p-5 text-white">
+        {" "}
         {/* BRAND */}
         <Link
           href="/cms/dashboard"
@@ -80,7 +81,6 @@ export default function CmsNavigation() {
             </span>
           </div>
         </Link>
-
         {/* WORKSPACE */}
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.045] p-4">
           <div className="flex items-center gap-3">
@@ -102,7 +102,6 @@ export default function CmsNavigation() {
             Workspace active
           </div>
         </div>
-
         {/* NAVIGATION */}
         <div className="mt-8">
           <p className="mb-3 px-3 text-[9px] font-bold uppercase tracking-[0.22em] text-slate-500">
@@ -146,7 +145,6 @@ export default function CmsNavigation() {
             })}
           </nav>
         </div>
-
         {/* FOOTER */}
         <div className="mt-auto space-y-1 border-t border-white/10 pt-4">
           <Link
