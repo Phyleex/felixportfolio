@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import SelectedWork from "@/components/SelectedWork";
 import AboutSection from "@/components/AboutSection";
 import ServicesSection from "@/components/ServicesSection";
+import ToolsSection from "@/components/ToolsSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
@@ -121,6 +122,7 @@ export default function Home() {
         <SelectedWork />
         <AboutSection />
         <ServicesSection />
+        <ToolsSection/>
         <ContactSection />
         <Footer />
       </div>

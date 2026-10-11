@@ -59,18 +59,14 @@ export const PROJECT_BY_SLUG_QUERY = defineQuery(`
 `);
 
 
-export const TOOLS_QUERY = defineQuery(`
-  *[
-    _type == "tool"
-    && isVisible == true
-  ]
-  | order(sortOrder asc, name asc)
-  {
-    _id,
-    name,
-    category,
-    proficiency,
-    description,
-    "logo": logo.asset->url
-  }
-`);
+export const TOOLS_QUERY = `
+  *[_type == "tool" && isVisible == true]
+    | order(sortOrder asc, name asc) {
+      _id,
+      name,
+      category,
+      proficiency,
+      description,
+      "logo": logo.asset->url
+    }
+`;
