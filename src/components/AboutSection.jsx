@@ -99,7 +99,7 @@ export default function AboutSection() {
               </div>
             </div>
 
-            <Link
+            {/* <Link
               href="/about"
               className="group mt-10 inline-flex items-center gap-4 rounded-xl border border-white/15 bg-white/[0.04] px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.15em] transition duration-300 hover:border-violet-400/50 hover:bg-violet-500/10"
             >
@@ -107,7 +107,7 @@ export default function AboutSection() {
               <span className="text-lg text-violet-300 transition-transform duration-300 group-hover:translate-x-1">
                 →
               </span>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

@@ -61,9 +61,9 @@ export default async function PortfolioPage() {
           </div>
 
           <div className="mt-12 flex flex-wrap items-center gap-3 border-t border-white/10 pt-6">
-            <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-semibold text-slate-300">
+            {/* <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-semibold text-slate-300">
               {projects.length} {projects.length === 1 ? "project" : "projects"}
-            </span>
+            </span> */}
 
             <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-semibold text-slate-300">
               Creative portfolio

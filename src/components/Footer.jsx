@@ -10,8 +10,8 @@ export default function Footer() {
       <div className="relative mx-auto max-w-7xl">
         <div className="border-t border-white/10 pt-12">
           <div className="flex flex-col gap-10 md:flex-row md:items-center md:justify-between">
-            {/* Brand */}
-            <Link href="/" className="group w-fit">
+            {/* Client brand */}
+            <Link href="#top" className="group w-fit">
               <div className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-4xl font-black tracking-[-0.06em] text-transparent transition-opacity group-hover:opacity-80">
                 LEEX<span className="text-white">.</span>
               </div>
@@ -26,33 +26,21 @@ export default function Footer() {
               aria-label="Footer navigation"
               className="flex flex-wrap gap-x-7 gap-y-4 text-sm text-slate-400"
             >
-              <a
-                href="#work"
-                className="transition-colors duration-200 hover:text-violet-300"
-              >
-                Work
-              </a>
-
-              <a
-                href="#about"
-                className="transition-colors duration-200 hover:text-fuchsia-300"
-              >
-                About
-              </a>
-
-              <a
-                href="#services"
-                className="transition-colors duration-200 hover:text-violet-300"
-              >
-                Services
-              </a>
-
-              <a
-                href="#contact"
-                className="transition-colors duration-200 hover:text-pink-300"
-              >
-                Contact
-              </a>
+              {[
+                ["Work", "#work"],
+                ["About", "#about"],
+                ["Services", "#services"],
+                ["Tools", "#tools"],
+                ["Contact", "#contact"],
+              ].map(([label, href]) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="transition-colors duration-200 hover:text-violet-300"
+                >
+                  {label}
+                </a>
+              ))}
             </nav>
 
             {/* Back to top */}
@@ -74,12 +62,13 @@ export default function Footer() {
               reserved.
             </p>
 
-            <p className="flex items-center gap-2">
-              Crafted with
+            {/* Developer credit */}
+            <p className="text-slate-400">
+              Designed & developed by{" "}
               <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text font-semibold text-transparent">
-                creativity
+                Xhina Tech
               </span>
-              <span aria-hidden="true" className="text-pink-400">
+              <span aria-hidden="true" className="ml-2 text-pink-400">
                 ✦
               </span>
             </p>
@@ -89,4 +78,3 @@ export default function Footer() {
     </footer>
   );
 }
-

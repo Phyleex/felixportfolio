@@ -1,7 +1,9 @@
-
-import Link from "next/link";
-
 export default function ContactSection() {
+  const email = "popoolafelixoladotun@gmail.com";
+  const emailLink = `mailto:${email}?subject=${encodeURIComponent(
+    "Project Inquiry - LEEX Creative Studio"
+  )}`;
+
   return (
     <section
       id="contact"
@@ -39,7 +41,7 @@ export default function ContactSection() {
             </p>
 
             <a
-              href="mailto:popoolafelixoladotun@gmail.com"
+              href={emailLink}
               className="group mt-9 inline-flex items-center gap-5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-white shadow-lg shadow-violet-950/30 transition duration-300 hover:-translate-y-1 hover:from-violet-500 hover:to-pink-500 hover:shadow-violet-500/20"
             >
               Start a project
@@ -59,10 +61,10 @@ export default function ContactSection() {
                 </p>
 
                 <a
-                  href="mailto: popoolafelixoladotun@gmail.com"
+                  href={emailLink}
                   className="mt-3 inline-block break-all text-base font-medium text-white transition-colors hover:text-fuchsia-300 sm:text-lg"
                 >
-                  popoolafelixoladotun@gmail.com
+                  {email}
                 </a>
               </div>
 
