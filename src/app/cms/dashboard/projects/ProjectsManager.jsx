@@ -104,7 +104,7 @@ export default function ProjectsManager() {
     setGalleryFiles([]);
     setMessage("");
     setError("");
-    window\.scrollTo({
+    window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
