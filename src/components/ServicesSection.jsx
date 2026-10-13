@@ -1,4 +1,3 @@
-
 const services = [
   {
     number: "01",
@@ -10,6 +9,14 @@ const services = [
   },
   {
     number: "02",
+    title: "Printing & Print Production",
+    description:
+      "From creative design to finished print, we coordinate the production of customized notebooks, wedding souvenirs, event programmes, invitation cards, business cards, flyers, branded paper bags and other promotional materials through trusted printing partners.",
+    accent: "from-purple-400 to-fuchsia-500",
+    color: "text-fuchsia-300",
+  },
+  {
+    number: "03",
     title: "Graphic Design",
     description:
       "Purposeful designs for campaigns, marketing materials, publications and more.",
@@ -17,7 +24,7 @@ const services = [
     color: "text-fuchsia-300",
   },
   {
-    number: "03",
+    number: "04",
     title: "Social Media Design",
     description:
       "Scroll-stopping visuals designed to make your brand stand out across social platforms.",
@@ -25,7 +32,7 @@ const services = [
     color: "text-pink-300",
   },
   {
-    number: "04",
+    number: "05",
     title: "Creative Campaigns",
     description:
       "Creative concepts and visual systems that turn ideas into engaging campaigns.",
@@ -33,7 +40,7 @@ const services = [
     color: "text-rose-300",
   },
   {
-    number: "05",
+    number: "06",
     title: "Digital Design",
     description:
       "Modern visual experiences for websites, digital products and online platforms.",
@@ -104,7 +111,7 @@ export default function ServicesSection() {
               </p>
 
               <span
-                className={`hidden h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg text-slate-400 transition-all duration-300 group-hover:rotate-45 group-hover:border-violet-400/40 group-hover:bg-violet-500/10 group-hover:text-violet-300 md:flex`}
+                className="hidden h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg text-slate-400 transition-all duration-300 group-hover:rotate-45 group-hover:border-violet-400/40 group-hover:bg-violet-500/10 group-hover:text-violet-300 md:flex"
                 aria-hidden="true"
               >
                 ↗
@@ -116,7 +123,7 @@ export default function ServicesSection() {
         {/* Closing note */}
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-            Five ways to bring your ideas to life.
+            Six ways to bring your ideas to life.
           </p>
 
           <a
@@ -133,4 +140,3 @@ export default function ServicesSection() {
     </section>
   );
 }
-

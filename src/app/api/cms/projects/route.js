@@ -17,7 +17,12 @@ const PROJECT_FIELDS = `
   "coverImageUrl": coverImage.asset->url,
   "gallery": gallery[]{
     "id": asset->_id,
-    "url": asset->url
+    "url": asset->url,
+    "type": select(
+      asset->_type == "sanity.fileAsset" => "video",
+      "image"
+    ),
+    "mimeType": asset->mimeType
   }
 `;
 
@@ -27,6 +32,42 @@ function responseError(message, status = 400) {
 
 async function authorized() {
   return verifyCmsSession();
+}
+
+async function validateBrand(brandId) {
+  if (!brandId) return true;
+
+  const brand = await client.fetch(
+    `*[_type == "brand" && _id == $brandId][0]._id`,
+    { brandId },
+  );
+
+  return Boolean(brand);
+}
+
+function normalizeGallery(galleryItems, galleryIds) {
+  // Backward compatibility with the existing image-only form.
+  if (!Array.isArray(galleryItems)) {
+    return (Array.isArray(galleryIds) ? galleryIds : []).map((id) => ({
+      id,
+      type: "image",
+    }));
+  }
+
+  return galleryItems.map((item) => ({
+    id: typeof item === "string" ? item : item.id,
+    type: typeof item === "string" ? "image" : item.type || "image",
+  }));
+}
+
+function buildGallery(galleryItems) {
+  return galleryItems.map(({ id, type }) => ({
+    _type: type === "video" ? "file" : "image",
+    asset: {
+      _type: "reference",
+      _ref: id,
+    },
+  }));
 }
 
 export async function GET() {
@@ -72,28 +113,29 @@ export async function POST(request) {
       description,
       coverImageId,
       galleryIds = [],
+      galleryItems,
       featured = false,
     } = body;
 
-    if (
-      !title?.trim() ||
-      !slug?.trim() ||
-      !brandId ||
-      !category ||
-      !coverImageId
-    ) {
+    if (!title?.trim() || !slug?.trim() || !category || !coverImageId) {
       return responseError(
-        "Title, slug, brand, category and cover image are required.",
+        "Title, slug, category and cover image are required.",
       );
     }
 
-    const brand = await client.fetch(
-      `*[_type == "brand" && _id == $brandId][0]._id`,
-      { brandId },
+    if (!(await validateBrand(brandId))) {
+      return responseError("Please select an existing brand.");
+    }
+
+    const normalizedGallery = normalizeGallery(galleryItems, galleryIds);
+
+    const invalidGalleryItem = normalizedGallery.some(
+      (item) =>
+        !item.id || !["image", "video"].includes(item.type),
     );
 
-    if (!brand) {
-      return responseError("Please select an existing brand.");
+    if (invalidGalleryItem) {
+      return responseError("One or more gallery items are invalid.");
     }
 
     const document = {
@@ -102,10 +144,6 @@ export async function POST(request) {
       slug: {
         _type: "slug",
         current: slug.trim(),
-      },
-      brand: {
-        _type: "reference",
-        _ref: brandId,
       },
       category,
       year: year ? Number(year) : undefined,
@@ -117,15 +155,16 @@ export async function POST(request) {
           _ref: coverImageId,
         },
       },
-      gallery: galleryIds.map((id) => ({
-        _type: "image",
-        asset: {
-          _type: "reference",
-          _ref: id,
-        },
-      })),
+      gallery: buildGallery(normalizedGallery),
       featured: Boolean(featured),
     };
+
+    if (brandId) {
+      document.brand = {
+        _type: "reference",
+        _ref: brandId,
+      };
+    }
 
     const created = await client.create(document);
 
@@ -157,18 +196,16 @@ export async function PATCH(request) {
       description,
       coverImageId,
       galleryIds = [],
+      galleryItems,
       featured = false,
     } = body;
 
-    if (!id || !title?.trim() || !slug?.trim() || !brandId || !category) {
+    if (!id || !title?.trim() || !slug?.trim() || !category) {
       return responseError("Required project details are missing.");
     }
 
     const existing = await client.fetch(
-      `*[_type == "project" && _id == $id][0]{
-        _id,
-        coverImage
-      }`,
+      `*[_type == "project" && _id == $id][0]{ _id, coverImage }`,
       { id },
     );
 
@@ -176,13 +213,19 @@ export async function PATCH(request) {
       return responseError("Project not found.", 404);
     }
 
-    const brand = await client.fetch(
-      `*[_type == "brand" && _id == $brandId][0]._id`,
-      { brandId },
+    if (!(await validateBrand(brandId))) {
+      return responseError("Please select an existing brand.");
+    }
+
+    const normalizedGallery = normalizeGallery(galleryItems, galleryIds);
+
+    const invalidGalleryItem = normalizedGallery.some(
+      (item) =>
+        !item.id || !["image", "video"].includes(item.type),
     );
 
-    if (!brand) {
-      return responseError("Please select an existing brand.");
+    if (invalidGalleryItem) {
+      return responseError("One or more gallery items are invalid.");
     }
 
     const patch = client.patch(id).set({
@@ -191,22 +234,23 @@ export async function PATCH(request) {
         _type: "slug",
         current: slug.trim(),
       },
-      brand: {
-        _type: "reference",
-        _ref: brandId,
-      },
       category,
       year: year ? Number(year) : null,
       description: description || "",
-      gallery: galleryIds.map((assetId) => ({
-        _type: "image",
-        asset: {
-          _type: "reference",
-          _ref: assetId,
-        },
-      })),
+      gallery: buildGallery(normalizedGallery),
       featured: Boolean(featured),
     });
+
+    if (brandId) {
+      patch.set({
+        brand: {
+          _type: "reference",
+          _ref: brandId,
+        },
+      });
+    } else {
+      patch.unset(["brand"]);
+    }
 
     if (coverImageId) {
       patch.set({
@@ -222,9 +266,7 @@ export async function PATCH(request) {
 
     await patch.commit();
 
-    return NextResponse.json({
-      success: true,
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to update project:", error);
     return responseError("Could not update project.", 500);
@@ -245,9 +287,7 @@ export async function DELETE(request) {
 
     await client.delete(id);
 
-    return NextResponse.json({
-      success: true,
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to delete project:", error);
     return responseError("Could not delete project.", 500);

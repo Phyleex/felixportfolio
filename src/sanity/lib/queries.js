@@ -52,12 +52,17 @@ export const PROJECT_BY_SLUG_QUERY = defineQuery(`
     "brand": brand->name,
     "coverImage": coverImage.asset->url,
     "gallery": gallery[]{
-      "url": asset->url,
-      "alt": coalesce(alt, "")
+      "url": coalesce(asset->url, file.asset->url),
+      "alt": coalesce(alt, ""),
+      "type": select(
+        defined(asset->mimeType) && asset->mimeType match "video/*" => "video",
+        defined(file.asset->mimeType) && file.asset->mimeType match "video/*" => "video",
+        "image"
+      ),
+      "mimeType": coalesce(asset->mimeType, file.asset->mimeType)
     }
   }
 `);
-
 
 export const TOOLS_QUERY = `
   *[_type == "tool" && isVisible == true]

@@ -9,6 +9,10 @@ const gradients = [
   "from-cyan-500 via-blue-600 to-violet-700",
 ];
 
+function isVideoItem(item) {
+  return item?.type === "video" || item?.mimeType?.startsWith("video/");
+}
+
 export default function ProjectGallery({ images, projectTitle }) {
   const [activeIndex, setActiveIndex] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -21,11 +25,13 @@ export default function ProjectGallery({ images, projectTitle }) {
 
   const isOpen = activeIndex !== null;
   const activeImage = isOpen ? images[activeIndex] : null;
+  const activeIsVideo = isVideoItem(activeImage);
 
   const resetView = useCallback(() => {
     setZoom(1);
     setPosition({ x: 0, y: 0 });
     setDragging(false);
+    pointerStart.current = null;
   }, []);
 
   const closeViewer = useCallback(() => {
@@ -39,6 +45,14 @@ export default function ProjectGallery({ images, projectTitle }) {
       resetView();
     },
     [images.length, resetView],
+  );
+
+  const openViewer = useCallback(
+    (index) => {
+      setActiveIndex(index);
+      resetView();
+    },
+    [resetView],
   );
 
   const changeZoom = useCallback((amount) => {
@@ -64,9 +78,11 @@ export default function ProjectGallery({ images, projectTitle }) {
       if (event.key === "ArrowRight") showImage(activeIndex + 1);
       if (event.key === "ArrowLeft") showImage(activeIndex - 1);
 
-      if (event.key === "+" || event.key === "=") changeZoom(0.5);
-      if (event.key === "-") changeZoom(-0.5);
-      if (event.key === "0") resetView();
+      if (!activeIsVideo) {
+        if (event.key === "+" || event.key === "=") changeZoom(0.5);
+        if (event.key === "-") changeZoom(-0.5);
+        if (event.key === "0") resetView();
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown);
@@ -75,21 +91,40 @@ export default function ProjectGallery({ images, projectTitle }) {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, activeIndex, closeViewer, showImage, changeZoom, resetView]);
+  }, [
+    isOpen,
+    activeIndex,
+    activeIsVideo,
+    closeViewer,
+    showImage,
+    changeZoom,
+    resetView,
+  ]);
 
   function handlePointerDown(event) {
-    if (zoom <= 1) return;
+    if (activeIsVideo || zoom <= 1) return;
 
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
+
     pointerStart.current = event.pointerId;
-    dragStart.current = { x: event.clientX, y: event.clientY };
+    dragStart.current = {
+      x: event.clientX,
+      y: event.clientY,
+    };
     positionStart.current = { ...position };
+
     setDragging(true);
   }
 
   function handlePointerMove(event) {
-    if (!dragging || pointerStart.current !== event.pointerId) return;
+    if (
+      activeIsVideo ||
+      !dragging ||
+      pointerStart.current !== event.pointerId
+    ) {
+      return;
+    }
 
     setPosition({
       x: positionStart.current.x + event.clientX - dragStart.current.x,
@@ -108,22 +143,18 @@ export default function ProjectGallery({ images, projectTitle }) {
 
   return (
     <>
+      {/* GALLERY GRID */}
       <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
         {images.map((image, index) => {
           const isFeatured = index % 3 === 0;
+          const video = isVideoItem(image);
 
           return (
-            <button
+            <div
               key={`${image.url}-${index}`}
-              type="button"
-              onClick={() => {
-                setActiveIndex(index);
-                resetView();
-              }}
-              aria-label={`View ${projectTitle} image ${index + 1} fullscreen`}
               className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${
                 gradients[index % gradients.length]
-              } p-2.5 text-left sm:rounded-3xl sm:p-3 ${
+              } p-2.5 sm:rounded-3xl sm:p-3 ${
                 isFeatured ? "md:col-span-2" : ""
               }`}
             >
@@ -132,81 +163,124 @@ export default function ProjectGallery({ images, projectTitle }) {
                   isFeatured ? "aspect-[4/3] sm:aspect-[16/9]" : "aspect-[4/3]"
                 }`}
               >
-                <Image
-                  src={image.url}
-                  alt={image.alt || `${projectTitle} design ${index + 1}`}
-                  fill
-                  unoptimized
-                  sizes={
-                    isFeatured
-                      ? "(max-width: 768px) 100vw, 100vw"
-                      : "(max-width: 768px) 100vw, 50vw"
-                  }
-                  className="object-cover transition duration-500 group-hover:scale-105"
-                />
+                {video ? (
+                  <video
+                    src={image.url}
+                    controls
+                    preload="metadata"
+                    playsInline
+                    aria-label={`${projectTitle} video ${index + 1}`}
+                    className="h-full w-full bg-black object-contain"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => openViewer(index)}
+                    aria-label={`View ${projectTitle} image ${
+                      index + 1
+                    } fullscreen`}
+                    className="absolute inset-0 h-full w-full"
+                  >
+                    <Image
+                      src={image.url}
+                      alt={image.alt || `${projectTitle} design ${index + 1}`}
+                      fill
+                      unoptimized
+                      sizes={
+                        isFeatured
+                          ? "(max-width: 768px) 100vw, 100vw"
+                          : "(max-width: 768px) 100vw, 50vw"
+                      }
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                    />
 
-                <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/25">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-black/40 text-xl text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
-                    ⤢
-                  </span>
-                </span>
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/25">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-black/40 text-xl text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
+                        ⤢
+                      </span>
+                    </span>
+                  </button>
+                )}
+
+                {video && (
+                  <button
+                    type="button"
+                    onClick={() => openViewer(index)}
+                    aria-label={`View ${projectTitle} video ${
+                      index + 1
+                    } fullscreen`}
+                    className="absolute right-3 top-3 z-10 rounded-lg border border-white/30 bg-black/65 px-3 py-2 text-xs font-semibold text-white backdrop-blur transition hover:bg-black/85"
+                  >
+                    Expand video ⤢
+                  </button>
+                )}
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
 
+      {/* FULLSCREEN VIEWER */}
       {isOpen && activeImage && (
         <div
           className="fixed inset-0 z-[100] flex flex-col bg-black/95 text-white backdrop-blur-xl"
           role="dialog"
           aria-modal="true"
-          aria-label={`${projectTitle} image viewer`}
+          aria-label={`${projectTitle} ${
+            activeIsVideo ? "media" : "image"
+          } viewer`}
           onClick={closeViewer}
         >
+          {/* VIEWER HEADER */}
           <div
             className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{projectTitle}</p>
+
               <p className="mt-1 text-xs text-slate-400">
-                Image {activeIndex + 1} of {images.length}
+                {activeIsVideo ? "Video" : "Image"} {activeIndex + 1} of{" "}
+                {images.length}
               </p>
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => changeZoom(-0.5)}
-                disabled={zoom <= 1}
-                aria-label="Zoom out"
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-xl transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                −
-              </button>
+              {!activeIsVideo && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => changeZoom(-0.5)}
+                    disabled={zoom <= 1}
+                    aria-label="Zoom out"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-xl transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    −
+                  </button>
 
-              <span className="hidden min-w-14 text-center text-xs text-slate-300 sm:block">
-                {Math.round(zoom * 100)}%
-              </span>
+                  <span className="hidden min-w-14 text-center text-xs text-slate-300 sm:block">
+                    {Math.round(zoom * 100)}%
+                  </span>
 
-              <button
-                type="button"
-                onClick={() => changeZoom(0.5)}
-                disabled={zoom >= 4}
-                aria-label="Zoom in"
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-xl transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                +
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => changeZoom(0.5)}
+                    disabled={zoom >= 4}
+                    aria-label="Zoom in"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-xl transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    +
+                  </button>
 
-              <button
-                type="button"
-                onClick={resetView}
-                className="hidden rounded-lg border border-white/15 px-3 py-2 text-xs transition hover:bg-white/10 sm:block"
-              >
-                Reset
-              </button>
+                  <button
+                    type="button"
+                    onClick={resetView}
+                    className="hidden rounded-lg border border-white/15 px-3 py-2 text-xs transition hover:bg-white/10 sm:block"
+                  >
+                    Reset
+                  </button>
+                </>
+              )}
 
               <button
                 type="button"
@@ -219,11 +293,12 @@ export default function ProjectGallery({ images, projectTitle }) {
             </div>
           </div>
 
+          {/* VIEWER MEDIA */}
           <div
             className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden px-14 py-5 sm:px-20"
             onClick={(event) => event.stopPropagation()}
             onWheel={(event) => {
-              if (event.ctrlKey || event.metaKey) {
+              if (!activeIsVideo && (event.ctrlKey || event.metaKey)) {
                 event.preventDefault();
                 changeZoom(event.deltaY < 0 ? 0.25 : -0.25);
               }
@@ -233,60 +308,89 @@ export default function ProjectGallery({ images, projectTitle }) {
               <button
                 type="button"
                 onClick={() => showImage(activeIndex - 1)}
-                aria-label="Previous image"
-                className="absolute left-2 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/50 text-2xl transition hover:bg-white/15 sm:left-5 sm:h-12 sm:w-12"
+                aria-label="Previous item"
+                className="absolute left-2 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/50 text-2xl transition hover:bg-white/15 sm:left-5 sm:h-12 sm:w-12"
               >
                 ‹
               </button>
             )}
 
             <div
-              className="relative flex h-full w-full items-center justify-center"
+              className={`relative flex h-full w-full items-center justify-center ${
+                activeIsVideo ? "" : "select-none"
+              }`}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerCancel={handlePointerUp}
               onDoubleClick={() => {
+                if (activeIsVideo) return;
+
                 if (zoom > 1) {
                   resetView();
                 } else {
                   setZoom(2);
                 }
               }}
-              style={{
-                cursor: zoom > 1 ? (dragging ? "grabbing" : "grab") : "zoom-in",
-                touchAction: zoom > 1 ? "none" : "pan-y",
-              }}
+              style={
+                activeIsVideo
+                  ? undefined
+                  : {
+                      cursor:
+                        zoom > 1 ? (dragging ? "grabbing" : "grab") : "zoom-in",
+                      touchAction: zoom > 1 ? "none" : "pan-y",
+                    }
+              }
             >
-              <img
-                src={activeImage.url}
-                alt={
-                  activeImage.alt || `${projectTitle} design ${activeIndex + 1}`
-                }
-                draggable={false}
-                className="max-h-full max-w-full select-none object-contain"
-                style={{
-                  transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
-                  transition: dragging ? "none" : "transform 150ms ease-out",
-                }}
-              />
+              {activeIsVideo ? (
+                <video
+                  key={activeImage.url}
+                  src={activeImage.url}
+                  controls
+                  autoPlay
+                  playsInline
+                  preload="metadata"
+                  className="max-h-full max-w-full"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                  }}
+                />
+              ) : (
+                <img
+                  src={activeImage.url}
+                  alt={
+                    activeImage.alt ||
+                    `${projectTitle} design ${activeIndex + 1}`
+                  }
+                  draggable={false}
+                  className="max-h-full max-w-full select-none object-contain"
+                  style={{
+                    transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+                    transition: dragging ? "none" : "transform 150ms ease-out",
+                  }}
+                />
+              )}
             </div>
 
             {images.length > 1 && (
               <button
                 type="button"
                 onClick={() => showImage(activeIndex + 1)}
-                aria-label="Next image"
-                className="absolute right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/50 text-2xl transition hover:bg-white/15 sm:right-5 sm:h-12 sm:w-12"
+                aria-label="Next item"
+                className="absolute right-2 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/50 text-2xl transition hover:bg-white/15 sm:right-5 sm:h-12 sm:w-12"
               >
                 ›
               </button>
             )}
           </div>
 
+          {/* VIEWER FOOTER */}
           <div className="shrink-0 border-t border-white/10 px-4 py-3 text-center text-xs text-slate-400">
-            Use + / − to zoom · Drag to explore · Double-click to zoom · Esc to
-            close
+            {activeIsVideo
+              ? "Use the video controls to play or pause · Arrow keys to navigate · Esc to close"
+              : "Use + / − to zoom · Drag to explore · Double-click to zoom · Esc to close"}
           </div>
         </div>
       )}
