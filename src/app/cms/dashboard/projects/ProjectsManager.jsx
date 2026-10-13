@@ -1,7 +1,10 @@
 "use client";
+
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+
 const UPLOAD_CONCURRENCY = 5;
+
 const categories = [
   "Brand Identity",
   "Graphic Design",
@@ -11,6 +14,7 @@ const categories = [
   "Printing & Print Production",
   "Other",
 ];
+
 const emptyForm = {
   id: "",
   title: "",
@@ -25,13 +29,51 @@ const emptyForm = {
   galleryImages: [],
   featured: false,
 };
+
 async function readResponse(response) {
   const data = await response.json();
+
   if (!response.ok) {
     throw new Error(data.error || "Request failed.");
   }
+
   return data;
 }
+
+function MediaPreview({ file, alt = "" }) {
+  const [previewUrl, setPreviewUrl] = useState("");
+
+  useEffect(() => {
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  if (!previewUrl) {
+    return <div className="h-full w-full bg-slate-100" />;
+  }
+
+  if (file.type.startsWith("video/")) {
+    return (
+      <video
+        src={previewUrl}
+        muted
+        playsInline
+        preload="metadata"
+        className="h-full w-full object-cover"
+        aria-label={alt}
+      />
+    );
+  }
+
+  return (
+    <img src={previewUrl} alt={alt} className="h-full w-full object-cover" />
+  );
+}
+
 export default function ProjectsManager() {
   const [projects, setProjects] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -47,14 +89,18 @@ export default function ProjectsManager() {
   });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError("");
+
     try {
       const response = await fetch("/api/cms/projects", {
         cache: "no-store",
       });
+
       const data = await readResponse(response);
+
       setProjects(data.projects || []);
       setBrands(data.brands || []);
     } catch (err) {
@@ -63,22 +109,31 @@ export default function ProjectsManager() {
       setLoading(false);
     }
   }, []);
+
   useEffect(() => {
     loadData();
   }, [loadData]);
+
   function updateField(name, value) {
     setForm((current) => ({
       ...current,
       [name]: value,
     }));
   }
+
   function resetForm() {
     setForm(emptyForm);
     setCoverFile(null);
     setGalleryFiles([]);
     setMessage("");
     setError("");
+    setUploadProgress({
+      active: false,
+      completed: 0,
+      total: 0,
+    });
   }
+
   function editProject(project) {
     const galleryImages = Array.isArray(project.gallery)
       ? project.gallery.map((item) => ({
@@ -86,6 +141,7 @@ export default function ProjectsManager() {
           type: item.type || "image",
         }))
       : [];
+
     setForm({
       id: project._id,
       title: project.title || "",
@@ -100,15 +156,18 @@ export default function ProjectsManager() {
       galleryImages,
       featured: Boolean(project.featured),
     });
+
     setCoverFile(null);
     setGalleryFiles([]);
     setMessage("");
     setError("");
+
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
   }
+
   function removeGalleryImage(imageId) {
     setForm((current) => ({
       ...current,
@@ -118,14 +177,17 @@ export default function ProjectsManager() {
       ),
     }));
   }
+
   function removeNewGalleryFile(index) {
     setGalleryFiles((current) =>
       current.filter((_, fileIndex) => fileIndex !== index),
     );
   }
+
   async function uploadImage(file) {
     const data = new FormData();
     data.append("file", file);
+
     return readResponse(
       await fetch("/api/cms/projects/upload", {
         method: "POST",
@@ -133,46 +195,79 @@ export default function ProjectsManager() {
       }),
     );
   }
+
   async function handleSubmit(event) {
     event.preventDefault();
+
     setSaving(true);
     setError("");
     setMessage("");
+
     try {
       let coverImageId = form.coverImageId;
+
       if (coverFile) {
         const uploaded = await uploadImage(coverFile);
         coverImageId = uploaded.assetId;
       }
+
       const galleryItems = form.galleryImages.map((item) => ({
         id: item.id,
         type: item.type || "image",
       }));
+
       if (galleryFiles.length > 0) {
         const total = galleryFiles.length;
         const results = new Array(total);
+
         let nextIndex = 0;
         let completed = 0;
-        setUploadProgress({ active: true, completed: 0, total });
+
+        setUploadProgress({
+          active: true,
+          completed: 0,
+          total,
+        });
+
         async function worker() {
           while (true) {
             const index = nextIndex++;
+
             if (index >= total) return;
+
             const file = galleryFiles[index];
             const uploaded = await uploadImage(file);
+
             results[index] = {
               id: uploaded.assetId,
-              type: uploaded.type || (file.type.startsWith("video/") ? "video" : "image"),
+              type:
+                uploaded.type ||
+                (file.type.startsWith("video/") ? "video" : "image"),
             };
+
             completed += 1;
-            setUploadProgress({ active: true, completed, total });
+
+            setUploadProgress({
+              active: true,
+              completed,
+              total,
+            });
           }
         }
+
         const workerCount = Math.min(UPLOAD_CONCURRENCY, total);
+
         await Promise.all(Array.from({ length: workerCount }, () => worker()));
+
         galleryItems.push(...results);
       }
-      setUploadProgress({ active: false, completed: 0, total: 0 });
+
+      setUploadProgress({
+        active: false,
+        completed: 0,
+        total: 0,
+      });
+
       const payload = {
         title: form.title,
         slug:
@@ -190,6 +285,7 @@ export default function ProjectsManager() {
         galleryItems,
         featured: form.featured,
       };
+
       const response = await fetch("/api/cms/projects", {
         method: form.id ? "PATCH" : "POST",
         headers: {
@@ -200,29 +296,41 @@ export default function ProjectsManager() {
           id: form.id || undefined,
         }),
       });
+
       await readResponse(response);
+
       setMessage(
         form.id
           ? "Project updated successfully."
           : "Project created successfully.",
       );
+
       resetForm();
       await loadData();
     } catch (err) {
       setError(err.message);
     } finally {
       setSaving(false);
+      setUploadProgress({
+        active: false,
+        completed: 0,
+        total: 0,
+      });
     }
   }
+
   async function deleteProject(project) {
-    const confirmed = window\.confirm(
+    const confirmed = window.confirm(
       `Delete "${project.title}"? This cannot be undone.`,
     );
+
     if (!confirmed) {
       return;
     }
+
     setError("");
     setMessage("");
+
     try {
       await readResponse(
         await fetch("/api/cms/projects", {
@@ -235,23 +343,28 @@ export default function ProjectsManager() {
           }),
         }),
       );
+
       if (form.id === project._id) {
         resetForm();
       }
+
       setMessage("Project deleted.");
       await loadData();
     } catch (err) {
       setError(err.message);
     }
   }
+
   const inputClass =
     "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-100";
+
   return (
     <main className="min-h-screen bg-[#f5f3ff] text-slate-900">
       {/* TOP HEADER */}
       <header className="relative overflow-hidden border-b border-white/10 bg-[#17142f] text-white">
         <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-violet-600/30 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-40 left-1/3 h-72 w-72 rounded-full bg-fuchsia-600/20 blur-3xl" />
+
         <div className="relative mx-auto max-w-7xl px-6 py-7 sm:px-10">
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
@@ -262,6 +375,7 @@ export default function ProjectsManager() {
                 <span className="text-lg">←</span>
                 Back to dashboard
               </Link>
+
               <div className="mt-5 flex items-center gap-3">
                 <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-violet-200">
                   LEEX CMS
@@ -271,14 +385,17 @@ export default function ProjectsManager() {
                   Portfolio management
                 </span>
               </div>
+
               <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
                 Project manager
               </h1>
+
               <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400 sm:text-base">
                 Create, edit and organize the creative work displayed across
                 your portfolio.
               </p>
             </div>
+
             <button
               type="button"
               onClick={resetForm}
@@ -287,6 +404,7 @@ export default function ProjectsManager() {
               + New project
             </button>
           </div>
+
           {/* STATS */}
           <div className="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-white/10 bg-white/[0.045] px-4 py-3">
@@ -295,6 +413,7 @@ export default function ProjectsManager() {
               </p>
               <p className="mt-1 text-xl font-bold">{projects.length}</p>
             </div>
+
             <div className="rounded-xl border border-white/10 bg-white/[0.045] px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
                 Featured
@@ -303,6 +422,7 @@ export default function ProjectsManager() {
                 {projects.filter((project) => project.featured).length}
               </p>
             </div>
+
             <div className="col-span-2 rounded-xl border border-white/10 bg-white/[0.045] px-4 py-3 sm:col-span-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
                 Brands
@@ -312,6 +432,7 @@ export default function ProjectsManager() {
           </div>
         </div>
       </header>
+
       {/* CONTENT */}
       <div className="mx-auto max-w-7xl px-6 py-8 sm:px-10 lg:py-10">
         {/* ALERTS */}
@@ -321,12 +442,14 @@ export default function ProjectsManager() {
             <p>{error}</p>
           </div>
         )}
+
         {message && (
           <div className="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">
             <span className="mt-0.5">✓</span>
             <p>{message}</p>
           </div>
         )}
+
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_420px]">
           {/* FORM */}
           <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_-35px_rgba(30,20,80,0.25)]">
@@ -343,11 +466,13 @@ export default function ProjectsManager() {
                     Add the details and visual assets for this project.
                   </p>
                 </div>
+
                 <div className="hidden h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-xl text-violet-600 sm:flex">
                   ✦
                 </div>
               </div>
             </div>
+
             <form onSubmit={handleSubmit} className="space-y-7 p-6 sm:p-8">
               {/* BASIC INFORMATION */}
               <div>
@@ -357,6 +482,7 @@ export default function ProjectsManager() {
                     Basic information visitors will see about the project.
                   </p>
                 </div>
+
                 <div className="space-y-5">
                   <label className="block text-sm font-medium">
                     Project title *
@@ -365,6 +491,7 @@ export default function ProjectsManager() {
                       value={form.title}
                       onChange={(event) => {
                         const title = event.target.value;
+
                         setForm((current) => ({
                           ...current,
                           title,
@@ -382,6 +509,7 @@ export default function ProjectsManager() {
                       required
                     />
                   </label>
+
                   <label className="block text-sm font-medium">
                     URL slug *
                     <input
@@ -394,6 +522,7 @@ export default function ProjectsManager() {
                       required
                     />
                   </label>
+
                   <label className="block text-sm font-medium">
                     Brand / Client (optional)
                     <select
@@ -411,6 +540,24 @@ export default function ProjectsManager() {
                       ))}
                     </select>
                   </label>
+
+                  <label className="block text-sm font-medium">
+                    Category
+                    <select
+                      className={inputClass}
+                      value={form.category}
+                      onChange={(event) =>
+                        updateField("category", event.target.value)
+                      }
+                    >
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
                   <label className="block text-sm font-medium">
                     Year
                     <input
@@ -422,6 +569,7 @@ export default function ProjectsManager() {
                       }
                     />
                   </label>
+
                   <label className="block text-sm font-medium">
                     Description
                     <textarea
@@ -436,6 +584,7 @@ export default function ProjectsManager() {
                   </label>
                 </div>
               </div>
+
               {/* COVER IMAGE */}
               <div className="border-t border-slate-100 pt-7">
                 <div className="mb-4">
@@ -444,15 +593,12 @@ export default function ProjectsManager() {
                     This is the main image displayed for the project.
                   </p>
                 </div>
+
                 <label className="block cursor-pointer">
                   <div className="group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 transition hover:border-violet-300 hover:bg-violet-50/30">
                     {coverFile ? (
                       <div className="relative aspect-[16/8]">
-                        <img
-                          src={URL.createObjectURL(coverFile)}
-                          alt="Selected cover"
-                          className="h-full w-full object-cover"
-                        />
+                        <MediaPreview file={coverFile} alt="Selected cover" />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition group-hover:opacity-100">
                           <span className="rounded-lg bg-white px-4 py-2 text-xs font-semibold text-slate-900">
                             Change image
@@ -488,6 +634,7 @@ export default function ProjectsManager() {
                         </p>
                       </div>
                     )}
+
                     <input
                       type="file"
                       accept="image/*"
@@ -499,12 +646,14 @@ export default function ProjectsManager() {
                     />
                   </div>
                 </label>
+
                 {coverFile && (
                   <p className="mt-3 truncate text-xs text-violet-600">
                     Selected: {coverFile.name}
                   </p>
                 )}
               </div>
+
               {/* GALLERY */}
               <div className="border-t border-slate-100 pt-7">
                 <div className="mb-4">
@@ -514,18 +663,20 @@ export default function ProjectsManager() {
                     project.
                   </p>
                 </div>
+
                 {/* EXISTING GALLERY */}
                 {form.galleryImages.length > 0 && (
                   <div className="mb-5">
                     <div className="mb-3 flex items-center justify-between">
                       <p className="text-xs font-semibold text-slate-700">
-                        Existing images
+                        Existing media
                       </p>
                       <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-slate-400">
                         {form.galleryImages.length}{" "}
                         {form.galleryImages.length === 1 ? "item" : "items"}
                       </span>
                     </div>
+
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {form.galleryImages.map((image, index) => (
                         <div
@@ -533,36 +684,51 @@ export default function ProjectsManager() {
                           className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-100"
                         >
                           <div className="aspect-square">
-                            <img
-                              src={image.url}
-                              alt={`Gallery image ${index + 1}`}
-                              className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                            />
+                            {image.type === "video" ? (
+                              <video
+                                src={image.url}
+                                muted
+                                playsInline
+                                preload="metadata"
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <img
+                                src={image.url}
+                                alt={`Gallery image ${index + 1}`}
+                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                              />
+                            )}
                           </div>
+
                           <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 via-black/10 to-transparent p-3">
                             <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white/70">
-                              {image.type === "video" ? "Video" : "Image"} {index + 1}
+                              {image.type === "video" ? "Video" : "Image"}{" "}
+                              {index + 1}
                             </span>
                           </div>
+
                           <button
                             type="button"
                             onClick={() => removeGalleryImage(image.id)}
                             className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/60 text-sm font-bold text-white opacity-0 backdrop-blur transition group-hover:opacity-100 hover:bg-rose-600"
                             title="Remove item from gallery"
-                            aria-label={`Remove gallery image ${index + 1}`}
+                            aria-label={`Remove gallery item ${index + 1}`}
                           >
                             ×
                           </button>
                         </div>
                       ))}
                     </div>
+
                     <p className="mt-3 text-[11px] leading-5 text-slate-400">
                       Removing an item only removes it from this project. The
                       original asset remains in Sanity.
                     </p>
                   </div>
                 )}
-                {/* ADD IMAGES */}
+
+                {/* ADD GALLERY MEDIA */}
                 <label className="block cursor-pointer">
                   <div className="flex min-h-32 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 text-center transition hover:border-violet-300 hover:bg-violet-50/30">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
@@ -574,6 +740,7 @@ export default function ProjectsManager() {
                     <p className="mt-1 text-xs text-slate-400">
                       Select multiple images and videos (MP4, WebM, MOV or OGG)
                     </p>
+
                     <input
                       type="file"
                       accept="image/*,video/mp4,video/webm,video/quicktime,video/ogg"
@@ -585,7 +752,8 @@ export default function ProjectsManager() {
                     />
                   </div>
                 </label>
-                {/* NEW IMAGES */}
+
+                {/* NEW MEDIA */}
                 {galleryFiles.length > 0 && (
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center justify-between">
@@ -596,26 +764,27 @@ export default function ProjectsManager() {
                         {galleryFiles.length} selected
                       </span>
                     </div>
+
                     {galleryFiles.map((file, index) => (
                       <div
                         key={`${file.name}-${index}`}
                         className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3"
                       >
                         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
+                          <MediaPreview file={file} alt="" />
                         </div>
+
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-xs font-medium text-slate-600">
                             {file.name}
                           </p>
                           <p className="mt-0.5 text-[10px] text-slate-400">
                             {(file.size / (1024 * 1024)).toFixed(1)} MB
+                            {" · "}
+                            {file.type.startsWith("video/") ? "Video" : "Image"}
                           </p>
                         </div>
+
                         <button
                           type="button"
                           onClick={() => removeNewGalleryFile(index)}
@@ -630,6 +799,7 @@ export default function ProjectsManager() {
                   </div>
                 )}
               </div>
+
               {/* FEATURED */}
               <div className="border-t border-slate-100 pt-7">
                 <label className="flex cursor-pointer items-start gap-4 rounded-2xl border border-violet-100 bg-violet-50/50 p-4">
@@ -651,6 +821,7 @@ export default function ProjectsManager() {
                   </span>
                 </label>
               </div>
+
               {/* ACTIONS */}
               <div className="flex flex-wrap gap-3 border-t border-slate-100 pt-7">
                 <button
@@ -666,6 +837,7 @@ export default function ProjectsManager() {
                         ? "Save changes"
                         : "Create project"}
                 </button>
+
                 {form.id && (
                   <button
                     type="button"
@@ -678,6 +850,7 @@ export default function ProjectsManager() {
               </div>
             </form>
           </section>
+
           {/* PROJECT LIST */}
           <section>
             <div className="mb-5 flex items-end justify-between">
@@ -687,10 +860,12 @@ export default function ProjectsManager() {
                 </p>
                 <h2 className="mt-1 text-xl font-bold">Existing projects</h2>
               </div>
+
               <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 shadow-sm ring-1 ring-slate-200">
                 {projects.length} total
               </span>
             </div>
+
             {loading ? (
               <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
                 <div className="animate-pulse space-y-4">
@@ -716,7 +891,7 @@ export default function ProjectsManager() {
                     key={project._id}
                     className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_15px_45px_-30px_rgba(30,20,80,0.3)] transition duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_25px_60px_-30px_rgba(90,50,180,0.3)]"
                   >
-                    {/* IMAGE */}
+                    {/* COVER IMAGE */}
                     <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
                       {project.coverImageUrl ? (
                         <img
@@ -731,10 +906,12 @@ export default function ProjectsManager() {
                           </span>
                         </div>
                       )}
+
                       <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
                         <span className="rounded-full border border-white/20 bg-black/30 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-md">
                           LEEX / WORK
                         </span>
+
                         {project.featured && (
                           <span className="rounded-full border border-violet-300/30 bg-violet-600/90 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-md">
                             Featured
@@ -742,6 +919,7 @@ export default function ProjectsManager() {
                         )}
                       </div>
                     </div>
+
                     {/* DETAILS */}
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-4">
@@ -753,12 +931,14 @@ export default function ProjectsManager() {
                             {project.title}
                           </h3>
                         </div>
+
                         {project.year && (
                           <span className="shrink-0 text-xs font-medium text-slate-400">
                             {project.year}
                           </span>
                         )}
                       </div>
+
                       {project.brand?.name && (
                         <div className="mt-4 flex items-center gap-2">
                           <span className="h-2 w-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500" />
@@ -767,11 +947,13 @@ export default function ProjectsManager() {
                           </span>
                         </div>
                       )}
+
                       {project.description && (
                         <p className="mt-4 line-clamp-2 text-sm leading-6 text-slate-500">
                           {project.description}
                         </p>
                       )}
+
                       <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
                         <div className="flex gap-2">
                           <button
@@ -781,6 +963,7 @@ export default function ProjectsManager() {
                           >
                             Edit
                           </button>
+
                           <button
                             type="button"
                             onClick={() => deleteProject(project)}
@@ -789,6 +972,7 @@ export default function ProjectsManager() {
                             Delete
                           </button>
                         </div>
+
                         <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-slate-300">
                           Project
                         </span>
