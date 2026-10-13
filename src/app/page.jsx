@@ -29,6 +29,7 @@ const highlights = [
   },
 ];
 
+export const dynamic = "force-dynamic";
 export default function Home() {
   return (
     <main className="overflow-hidden bg-[#15132f] text-white">
