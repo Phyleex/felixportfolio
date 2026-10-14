@@ -6,7 +6,7 @@ const sections = [
   {
     title: "Projects",
     description:
-      "Manage portfolio projects, images, descriptions and categories.",
+      "Manage portfolio projects, images, videos, descriptions and categories.",
     href: "/cms/dashboard/projects",
     number: "01",
     color: "from-violet-600 to-indigo-600",
@@ -38,7 +38,8 @@ const sections = [
   },
   {
     title: "Services",
-    description: "Edit the services displayed on your website.",
+    description:
+      "Add, edit, reorder and hide services and their sub-services on your website.",
     href: "/cms/dashboard/services",
     number: "04",
     color: "from-orange-500 to-rose-500",
@@ -86,11 +87,12 @@ export default async function CmsDashboardPage() {
   }
 
   const activeSections = sections.filter((section) =>
-    ["Projects", "Brands", "Tools"].includes(section.title),
+    ["Projects", "Brands", "Tools", "Services"].includes(section.title),
   );
 
   const comingSoonSections = sections.filter(
-    (section) => !["Projects", "Brands", "Tools"].includes(section.title),
+    (section) =>
+      !["Projects", "Brands", "Tools", "Services"].includes(section.title),
   );
 
   return (
@@ -102,7 +104,6 @@ export default async function CmsDashboardPage() {
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-violet-600">
               LEEX / Administration
             </p>
-
             <h1 className="mt-2 text-xl font-bold tracking-tight sm:text-2xl">
               Content manager
             </h1>
@@ -130,14 +131,12 @@ export default async function CmsDashboardPage() {
         </div>
       </header>
 
-      {/* FULL-WIDTH PAGE CONTENT */}
-      <div className="w-full px-5 py-8 sm:px-8 lg:px-10 sm:py-10">
+      {/* PAGE CONTENT */}
+      <div className="w-full px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         {/* HERO */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#28195e] via-violet-700 to-[#b63b87] p-7 text-white shadow-2xl shadow-violet-200/60 sm:p-10 lg:p-12">
           <div className="pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full border-[45px] border-white/[0.07]" />
-
           <div className="pointer-events-none absolute -bottom-32 right-20 h-64 w-64 rounded-full bg-fuchsia-400/20 blur-3xl" />
-
           <div className="pointer-events-none absolute -left-24 bottom-0 h-48 w-48 rounded-full bg-violet-400/20 blur-3xl" />
 
           <div className="relative">
@@ -161,24 +160,28 @@ export default async function CmsDashboardPage() {
                 href="/cms/dashboard/projects"
                 className="inline-flex items-center gap-3 rounded-xl bg-white px-5 py-3 text-sm font-bold text-violet-800 shadow-lg transition hover:-translate-y-0.5 hover:bg-violet-50"
               >
-                Manage projects
-                <span>↗</span>
+                Manage projects <span>↗</span>
               </Link>
 
               <Link
                 href="/cms/dashboard/brands"
                 className="inline-flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15"
               >
-                Manage brands
-                <span>→</span>
+                Manage brands <span>→</span>
               </Link>
 
               <Link
                 href="/cms/dashboard/tools"
                 className="inline-flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15"
               >
-                Manage tools
-                <span>→</span>
+                Manage tools <span>→</span>
+              </Link>
+
+              <Link
+                href="/cms/dashboard/services"
+                className="inline-flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15"
+              >
+                Manage services <span>→</span>
               </Link>
             </div>
           </div>
@@ -231,7 +234,6 @@ export default async function CmsDashboardPage() {
               Manage your studio
             </h2>
           </div>
-
           <p className="text-sm text-slate-500">Your active CMS sections.</p>
         </div>
 
@@ -252,7 +254,6 @@ export default async function CmsDashboardPage() {
                 >
                   {section.icon}
                 </div>
-
                 <span className="text-xs font-bold tracking-[0.18em] text-slate-300">
                   {section.number}
                 </span>
@@ -302,14 +303,12 @@ export default async function CmsDashboardPage() {
                     >
                       {section.icon}
                     </div>
-
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
                       Soon
                     </span>
                   </div>
 
                   <h3 className="mt-5 font-bold">{section.title}</h3>
-
                   <p className="mt-2 text-xs leading-5 text-slate-400">
                     {section.description}
                   </p>

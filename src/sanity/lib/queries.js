@@ -75,3 +75,23 @@ export const TOOLS_QUERY = `
       "logo": logo.asset->url
     }
 `;
+
+export const SERVICES_QUERY = defineQuery(`
+  *[
+    _type == "service"
+    && isVisible == true
+  ]
+  | order(order asc, number asc)
+  {
+    _id,
+    title,
+    number,
+    description,
+    order,
+    isVisible,
+    "subServices": subServices[]{
+      _key,
+      title
+    }
+  }
+`);

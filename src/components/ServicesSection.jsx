@@ -1,3 +1,6 @@
+import { client } from "@/sanity/lib/client";
+import { SERVICES_QUERY } from "@/sanity/lib/queries";
+
 const services = [
   {
     number: "01",
@@ -17,6 +20,14 @@ const services = [
   },
   {
     number: "03",
+    title: "Video Editing",
+    description:
+      "Engaging video content for brands and digital platforms, including ads editing, content editing, UGC (user-generated content) editing, and motion graphics.",
+    accent: "from-violet-400 to-pink-500",
+    color: "text-violet-300",
+  },
+  {
+    number: "04",
     title: "Graphic Design",
     description:
       "Purposeful designs for campaigns, marketing materials, publications and more.",
@@ -24,7 +35,7 @@ const services = [
     color: "text-fuchsia-300",
   },
   {
-    number: "04",
+    number: "05",
     title: "Social Media Design",
     description:
       "Scroll-stopping visuals designed to make your brand stand out across social platforms.",
@@ -32,7 +43,7 @@ const services = [
     color: "text-pink-300",
   },
   {
-    number: "05",
+    number: "06",
     title: "Creative Campaigns",
     description:
       "Creative concepts and visual systems that turn ideas into engaging campaigns.",
@@ -40,7 +51,7 @@ const services = [
     color: "text-rose-300",
   },
   {
-    number: "06",
+    number: "07",
     title: "Digital Design",
     description:
       "Modern visual experiences for websites, digital products and online platforms.",
@@ -49,18 +60,60 @@ const services = [
   },
 ];
 
-export default function ServicesSection() {
+const additionalServiceStyles = [
+  {
+    accent: "from-violet-400 to-purple-500",
+    color: "text-violet-300",
+  },
+  {
+    accent: "from-purple-400 to-fuchsia-500",
+    color: "text-fuchsia-300",
+  },
+  {
+    accent: "from-fuchsia-400 to-pink-500",
+    color: "text-pink-300",
+  },
+];
+
+export default async function ServicesSection() {
+  let cmsServices = [];
+
+  try {
+    cmsServices = await client.fetch(SERVICES_QUERY);
+  } catch (error) {
+    console.error("Failed to fetch services from Sanity:", error);
+  }
+
+  const existingTitles = new Set(
+    services.map((service) => service.title.trim().toLowerCase()),
+  );
+
+  const additionalServices = cmsServices
+    .filter(
+      (service) =>
+        service.title &&
+        !existingTitles.has(service.title.trim().toLowerCase()),
+    )
+    .map((service, index) => ({
+      ...service,
+      number: String(services.length + index + 1).padStart(2, "0"),
+      accent:
+        additionalServiceStyles[index % additionalServiceStyles.length].accent,
+      color:
+        additionalServiceStyles[index % additionalServiceStyles.length].color,
+    }));
+
+  const allServices = [...services, ...additionalServices];
+
   return (
     <section
       id="services"
       className="relative isolate overflow-hidden bg-[#15132f] px-6 py-24 text-white sm:px-10 lg:px-16 lg:py-32"
     >
-      {/* Background glow effects */}
       <div className="pointer-events-none absolute -left-40 top-20 -z-10 h-96 w-96 rounded-full bg-violet-600/10 blur-[130px]" />
       <div className="pointer-events-none absolute -right-40 bottom-0 -z-10 h-96 w-96 rounded-full bg-pink-600/10 blur-[130px]" />
 
       <div className="mx-auto max-w-7xl">
-        {/* Section heading */}
         <div className="mb-14 flex flex-col gap-6 md:mb-16 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
@@ -84,14 +137,12 @@ export default function ServicesSection() {
           </p>
         </div>
 
-        {/* Services list */}
         <div className="border-t border-white/10">
-          {services.map((service) => (
+          {allServices.map((service) => (
             <article
-              key={service.number}
+              key={service._id || service.title}
               className="group relative grid gap-5 border-b border-white/10 py-8 transition-colors duration-300 hover:bg-white/[0.025] sm:py-10 md:grid-cols-[70px_1fr_1fr_40px] md:items-center md:gap-8 md:py-11 md:hover:px-5"
             >
-              {/* Gradient hover indicator */}
               <div
                 className={`absolute bottom-0 left-0 top-0 w-0.5 origin-bottom scale-y-0 bg-gradient-to-b ${service.accent} transition-transform duration-300 group-hover:scale-y-100`}
               />
@@ -102,9 +153,20 @@ export default function ServicesSection() {
                 {service.number}
               </span>
 
-              <h3 className="text-2xl font-bold leading-tight tracking-tight transition-colors duration-300 group-hover:text-violet-200 sm:text-3xl md:text-4xl lg:text-5xl">
-                {service.title}
-              </h3>
+              <div>
+                <h3 className="text-2xl font-bold leading-tight tracking-tight transition-colors duration-300 group-hover:text-violet-200 sm:text-3xl md:text-4xl lg:text-5xl">
+                  {service.title}
+                </h3>
+
+                {service.subServices?.length > 0 && (
+                  <p className="mt-3 text-xs leading-6 text-slate-500 sm:text-sm">
+                    {service.subServices
+                      .map((item) => item.title)
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
+              </div>
 
               <p className="max-w-md text-sm leading-7 text-slate-400 transition-colors duration-300 group-hover:text-slate-300 sm:text-base">
                 {service.description}
@@ -120,10 +182,9 @@ export default function ServicesSection() {
           ))}
         </div>
 
-        {/* Closing note */}
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-            Six ways to bring your ideas to life.
+            {allServices.length} ways to bring your ideas to life.
           </p>
 
           <a
