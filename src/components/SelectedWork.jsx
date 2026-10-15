@@ -13,7 +13,13 @@ const accents = ["text-violet-300", "text-pink-300", "text-cyan-300"];
 
 async function getFeaturedProjects() {
   try {
-    return await client.fetch(PROJECTS_QUERY);
+    const projects = await client.fetch(PROJECTS_QUERY);
+
+    // Only show published, featured projects on the homepage.
+    // The query must return the featured field.
+    return (projects || [])
+      .filter((project) => project.featured === true)
+      .slice(0, 4);
   } catch (error) {
     console.error("Failed to fetch featured projects:", error);
     return [];
@@ -43,7 +49,7 @@ export default async function SelectedWork() {
             </div>
 
             <h2 className="mt-6 text-4xl font-black tracking-[-0.045em] sm:text-6xl md:text-7xl">
-              Recent{" "}
+              Selected{" "}
               <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
                 projects.
               </span>
@@ -51,23 +57,27 @@ export default async function SelectedWork() {
           </div>
 
           <p className="max-w-sm text-sm leading-7 text-slate-300 sm:text-base">
-            A selection of creative work developed for brands, businesses and
-            individuals.
+            A selection of our best creative work developed for brands,
+            businesses and individuals.
           </p>
         </div>
 
         {projects.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-6 py-12 text-center">
-            <h3 className="text-xl font-bold">Our work is coming soon.</h3>
+            <h3 className="text-xl font-bold">
+              No featured projects yet.
+            </h3>
 
             <p className="mt-3 text-sm text-slate-400">
-              Featured projects will appear here once they are published.
+              Publish your projects and mark your best work as featured in
+              the CMS to display it here.
             </p>
           </div>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project, index) => {
-              const projectSlug = project.slug?.current || project.slug || "";
+              const projectSlug =
+                project.slug?.current || project.slug || "";
 
               return (
                 <Link
@@ -82,7 +92,7 @@ export default async function SelectedWork() {
                       {project.coverImage ? (
                         <Image
                           src={project.coverImage}
-                          alt={project.title}
+                          alt={project.title || "LEEX creative project"}
                           fill
                           unoptimized
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
