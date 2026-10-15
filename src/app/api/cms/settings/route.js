@@ -38,6 +38,10 @@ function normalizeSettings(body = {}) {
     xUrl: clean(body.xUrl, 500),
     tiktokUrl: clean(body.tiktokUrl, 500),
     footerText: clean(body.footerText, 240),
+    maintenanceMode: body.maintenanceMode === true,
+    maintenanceMessage:
+      clean(body.maintenanceMessage, 300) ||
+      "We're upgrading our website. We'll be back shortly.",
   };
 }
 
@@ -83,7 +87,9 @@ export async function GET() {
         metaDescription,
         xUrl,
         tiktokUrl,
-        footerText
+        footerText,
+        maintenanceMode,
+        maintenanceMessage
       }`,
       { id: SETTINGS_ID },
     );

@@ -34,7 +34,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
   }
 
-  const expires = Math.floor(Date.now() / 1000) + 60 * 60 * 8;
+  const expires = Math.floor(Date.now() / 1000) + 60 * 60;
   const payload = `admin:${expires}`;
 
   const signature = createHmac("sha256", secret).update(payload).digest("hex");
@@ -46,7 +46,7 @@ export async function POST(request) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     path: "/",
-    maxAge: 60 * 60 * 8,
+    maxAge: 60 * 60,
   });
 
   return response;

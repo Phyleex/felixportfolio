@@ -61,6 +61,24 @@ export const siteSettingsType = defineType({
       title: "TikTok URL",
       type: "url",
     }),
+
+    defineField({
+      name: "maintenanceMode",
+      title: "Maintenance Mode",
+      type: "boolean",
+      initialValue: false,
+      description: "When enabled, public visitors see the maintenance page.",
+    }),
+    
+    defineField({
+      name: "maintenanceMessage",
+      title: "Maintenance Message",
+      type: "text",
+      rows: 3,
+      initialValue: "We're upgrading our website. We'll be back shortly.",
+      description: "Message displayed to public visitors during maintenance.",
+    }),
+
     defineField({
       name: "footerText",
       title: "Footer Text",

@@ -15,6 +15,8 @@ const initialSettings = {
   xUrl: "",
   tiktokUrl: "",
   footerText: "",
+  maintenanceMode: false,
+  maintenanceMessage: "We're upgrading our website. We'll be back shortly.",
 };
 
 const sections = [
@@ -56,6 +58,7 @@ const sections = [
         name: "metaDescription",
         label: "Meta Description",
         multiline: true,
+        maxLength: 160,
       },
     ],
   },
@@ -160,7 +163,7 @@ export default function WebsiteSettingsPage() {
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
             Manage your studio information, contact details, SEO defaults,
-            social profiles, and website footer in one place.
+            social profiles, maintenance mode, and website footer in one place.
           </p>
         </header>
 
@@ -178,6 +181,71 @@ export default function WebsiteSettingsPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* MAINTENANCE MODE */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+            <div className="mb-6">
+              <h2 className="text-lg font-bold">Maintenance Mode</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Control whether public visitors can access your website. The CMS
+                dashboard should remain available.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-semibold text-slate-800">
+                  {settings.maintenanceMode
+                    ? "Maintenance mode is ON"
+                    : "Maintenance mode is OFF"}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {settings.maintenanceMode
+                    ? "Visitors should see your maintenance page once public-route protection is enabled."
+                    : "Your public website is intended to remain available."}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={Boolean(settings.maintenanceMode)}
+                aria-label="Toggle maintenance mode"
+                onClick={() =>
+                  handleChange("maintenanceMode", !settings.maintenanceMode)
+                }
+                className={`relative inline-flex h-7 w-14 shrink-0 items-center rounded-full transition ${
+                  settings.maintenanceMode ? "bg-rose-600" : "bg-slate-300"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                    settings.maintenanceMode ? "translate-x-8" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <label className="mt-5 block">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">
+                Maintenance Message
+              </span>
+              <textarea
+                rows={3}
+                maxLength={300}
+                value={settings.maintenanceMessage || ""}
+                onChange={(event) =>
+                  handleChange("maintenanceMessage", event.target.value)
+                }
+                placeholder="We're upgrading our website. We'll be back shortly."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100"
+              />
+              <span className="mt-1 block text-right text-xs text-slate-400">
+                {(settings.maintenanceMessage || "").length}/300 characters
+              </span>
+            </label>
+          </section>
+
+          {/* OTHER SETTINGS */}
           {sections.map((section, index) => (
             <section
               key={section.title}
@@ -213,7 +281,7 @@ export default function WebsiteSettingsPage() {
                       <>
                         <textarea
                           rows={4}
-                          maxLength={160}
+                          maxLength={field.maxLength || 160}
                           value={settings[field.name] || ""}
                           onChange={(event) =>
                             handleChange(field.name, event.target.value)
@@ -222,7 +290,8 @@ export default function WebsiteSettingsPage() {
                           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100"
                         />
                         <span className="mt-1 block text-right text-xs text-slate-400">
-                          {(settings[field.name] || "").length}/160 characters
+                          {(settings[field.name] || "").length}/
+                          {field.maxLength || 160} characters
                         </span>
                       </>
                     ) : (
@@ -260,7 +329,7 @@ export default function WebsiteSettingsPage() {
             <p className="text-xs text-slate-500">
               {loading
                 ? "Loading saved settings..."
-                : "Remember to save your changes."}
+                : "Save your changes to apply the settings."}
             </p>
 
             <button
