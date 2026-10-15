@@ -70,67 +70,77 @@ export default function ContactSection() {
           {/* Contact details */}
           <div className="flex flex-col justify-end">
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-              {/* Contact buttons */}
-              <div>
+              {/* Email */}
+              <div className="border-b border-white/10 pb-6">
                 <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-violet-300">
-                  Get in touch
+                  Email
+                </p>
+
+                <a
+                  href={emailLink}
+                  aria-label="Send an email to LEEX Creative Studio"
+                  className="mt-4 inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-violet-400/50 hover:bg-violet-500/10"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    className="h-5 w-5 text-violet-300"
+                    aria-hidden="true"
+                  >
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                    <path d="m3 7 9 6 9-6" />
+                  </svg>
+                  Send an Email
+                  <span>↗</span>
+                </a>
+              </div>
+
+              {/* WhatsApp */}
+              <div className="border-b border-white/10 py-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-green-400">
+                  WhatsApp
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-3">
-                  {/* Email */}
-                  <a
-                    href={emailLink}
-                    aria-label="Send LEEX Creative Studio an email"
-                    className="inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-violet-400/50 hover:bg-violet-500/10"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      className="h-5 w-5 text-violet-300"
-                      aria-hidden="true"
-                    >
-                      <rect x="3" y="5" width="18" height="14" rx="2" />
-                      <path d="m3 7 9 6 9-6" />
-                    </svg>
-                    Email <span>↗</span>
-                  </a>
-
-                  {/* WhatsApp contacts */}
                   {whatsappNumbers.map((contact) => (
                     <a
                       key={contact.link}
                       href={`https://wa.me/${contact.link}?text=${whatsappMessage}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Contact LEEX through ${contact.label}`}
+                      aria-label={`Chat with LEEX Creative Studio using ${contact.label}`}
                       className="inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-green-400/50 hover:bg-green-500/10"
                     >
+                      {/* WhatsApp logo */}
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
+                        viewBox="0 0 32 32"
                         fill="currentColor"
-                        className="h-5 w-5 shrink-0 text-green-400"
+                        className="h-6 w-6 shrink-0 text-[#25D366]"
                         aria-hidden="true"
                       >
-                        <path d="M20.52 3.48A11.83 11.83 0 0 0 12.08 0C5.5 0 .15 5.35.15 11.93c0 2.1.55 4.15 1.6 5.95L0 24l6.27-1.65a11.9 11.9 0 0 0 5.8 1.48h.01c6.58 0 11.93-5.35 11.93-11.93a11.85 11.85 0 0 0-3.49-8.42ZM12.08 21.8a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.72.98.99-3.63-.24-.37a9.84 9.84 0 0 1-1.52-5.26c0-5.45 4.44-9.89 9.9-9.89a9.82 9.82 0 0 1 7 2.9 9.82 9.82 0 0 1 2.9 7c0 5.45-4.44 9.89-9.9 9.89Z" />
+                        <path d="M16.04 2.67A13.25 13.25 0 0 0 4.65 22.7L2.8 29.33l6.8-1.78a13.3 13.3 0 0 0 6.35 1.62h.01A13.25 13.25 0 0 0 16.04 2.67Zm-.07 24.26h-.01a11 11 0 0 1-5.6-1.53l-.4-.24-4.03 1.06L7 22.3l-.26-.41a10.94 10.94 0 1 1 9.23 5.04Zm6.01-8.2c-.33-.17-1.95-.96-2.25-1.07-.3-.11-.52-.17-.74.17-.22.33-.85 1.07-1.04 1.29-.19.22-.39.25-.72.08-.33-.17-1.39-.51-2.65-1.63-.98-.88-1.64-1.96-1.83-2.29-.19-.33-.02-.51.14-.67.15-.15.33-.39.5-.58.17-.19.22-.33.33-.55.11-.22.06-.41-.03-.58-.08-.17-.74-1.79-1.01-2.45-.27-.65-.54-.56-.74-.57l-.63-.01c-.22 0-.58.08-.88.41-.3.33-1.15 1.12-1.15 2.73s1.18 3.17 1.34 3.39c.17.22 2.32 3.54 5.62 4.96.79.34 1.41.55 1.89.7.79.25 1.5.21 2.07.13.63-.09 1.95-.8 2.23-1.57.27-.77.27-1.43.19-1.57-.08-.14-.3-.22-.63-.39Z" />
                       </svg>
-                      {contact.label} <span>↗</span>
+
+                      {contact.label}
+                      <span>↗</span>
                     </a>
                   ))}
                 </div>
               </div>
 
-              {/* Phone contact button */}
-              <div className="mt-6 border-t border-white/10 pt-6">
+              {/* Phone */}
+              <div className="border-b border-white/10 py-6">
                 <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-fuchsia-300">
                   Phone
                 </p>
 
                 <a
                   href="tel:+2348100977788"
+                  aria-label="Call LEEX Creative Studio"
                   className="mt-4 inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-fuchsia-400/50 hover:bg-fuchsia-500/10"
                 >
                   <svg
@@ -144,12 +154,13 @@ export default function ContactSection() {
                   >
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z" />
                   </svg>
-                  Call LEEX <span>↗</span>
+                  Call LEEX
+                  <span>↗</span>
                 </a>
               </div>
 
               {/* Social links */}
-              <div className="mt-6 border-t border-white/10 pt-6">
+              <div className="pt-6">
                 <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-pink-300">
                   Follow LEEX
                 </p>
