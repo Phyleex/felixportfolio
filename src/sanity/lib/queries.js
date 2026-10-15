@@ -1,21 +1,12 @@
 import { defineQuery } from "next-sanity";
 
 // Homepage: featured projects only.
-// The homepage component should limit the results to 4.
+// The homepage component should limit the results to 6.
 export const PROJECTS_QUERY = defineQuery(`
-  *[
-    _type == "project"
-    && featured == true
-  ]
+  *[_type == "project" && featured == true]
   | order(_createdAt desc)
-  {
-    _id,
-    title,
-    slug,
-    category,
-    year,
-    description,
-    featured,
+  [0...6] {
+    _id, title, slug, category, year, description, featured,
     "brand": brand->name,
     "coverImage": coverImage.asset->url
   }
@@ -69,7 +60,7 @@ export const PROJECT_BY_SLUG_QUERY = defineQuery(`
 `);
 
 // Homepage: featured tools only.
-// The homepage component should limit the results to 5.
+// The homepage component should limit the results to 6.
 export const FEATURED_TOOLS_QUERY = defineQuery(`
   *[
     _type == "tool"
@@ -77,7 +68,7 @@ export const FEATURED_TOOLS_QUERY = defineQuery(`
     && featured == true
   ]
   | order(sortOrder asc, name asc)
-  {
+  [0...6] {
     _id,
     name,
     category,

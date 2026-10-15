@@ -19,7 +19,7 @@ async function getFeaturedProjects() {
     // The query must return the featured field.
     return (projects || [])
       .filter((project) => project.featured === true)
-      .slice(0, 4);
+      .slice(0, 6);
   } catch (error) {
     console.error("Failed to fetch featured projects:", error);
     return [];

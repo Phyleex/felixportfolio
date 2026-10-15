@@ -34,6 +34,7 @@ export async function GET() {
         proficiency,
         description,
         sortOrder,
+        featured,
         isVisible,
         "logoId": logo.asset->_id,
         "logoUrl": logo.asset->url
@@ -54,6 +55,7 @@ export async function POST(request) {
 
   try {
     const body = await request.json();
+
     const {
       name,
       category,
@@ -61,6 +63,7 @@ export async function POST(request) {
       description = "",
       logoId,
       sortOrder = 0,
+      featured = false,
       isVisible = true,
     } = body;
 
@@ -91,6 +94,7 @@ export async function POST(request) {
         asset: { _type: "reference", _ref: logoId },
       },
       sortOrder: Number(sortOrder) || 0,
+      featured: Boolean(featured),
       isVisible: Boolean(isVisible),
     });
 
@@ -108,6 +112,7 @@ export async function PATCH(request) {
 
   try {
     const body = await request.json();
+
     const {
       id,
       name,
@@ -116,23 +121,25 @@ export async function PATCH(request) {
       description = "",
       logoId,
       sortOrder = 0,
-      isVisible = true,
+      featured,
+      isVisible,
     } = body;
 
-    if (!id || !name?.trim() || !CATEGORIES.includes(category)) {
-      return responseError("Tool ID, name and valid category are required.");
-    }
-
-    if (
-      !Number.isInteger(Number(proficiency)) ||
-      Number(proficiency) < 0 ||
-      Number(proficiency) > 100
-    ) {
-      return responseError("Proficiency must be between 0 and 100.");
+    if (!id) {
+      return responseError("Tool ID is required.");
     }
 
     const existing = await client.fetch(
-      `*[_type == "tool" && _id == $id][0]._id`,
+      `*[_type == "tool" && _id == $id][0]{
+        _id,
+        name,
+        category,
+        proficiency,
+        description,
+        sortOrder,
+        featured,
+        isVisible
+      }`,
       { id },
     );
 
@@ -140,14 +147,49 @@ export async function PATCH(request) {
       return responseError("Tool not found.", 404);
     }
 
-    const patch = client.patch(id).set({
-      name: name.trim(),
-      category,
-      proficiency: Number(proficiency),
-      description: description.trim(),
-      sortOrder: Number(sortOrder) || 0,
-      isVisible: Boolean(isVisible),
-    });
+    const nextName = name === undefined ? existing.name : name;
+    const nextCategory =
+      category === undefined ? existing.category : category;
+    const nextProficiency =
+      proficiency === undefined ? existing.proficiency ?? 0 : proficiency;
+
+    if (!nextName?.trim() || !CATEGORIES.includes(nextCategory)) {
+      return responseError("Tool name and valid category are required.");
+    }
+
+    if (
+      !Number.isInteger(Number(nextProficiency)) ||
+      Number(nextProficiency) < 0 ||
+      Number(nextProficiency) > 100
+    ) {
+      return responseError("Proficiency must be between 0 and 100.");
+    }
+
+    const patchData = {
+      name: nextName.trim(),
+      category: nextCategory,
+      proficiency: Number(nextProficiency),
+      description:
+        description === undefined
+          ? existing.description || ""
+          : description.trim(),
+      sortOrder:
+        sortOrder === undefined
+          ? existing.sortOrder ?? 0
+          : Number(sortOrder) || 0,
+    };
+
+    // Only update these booleans when the request explicitly supplies them.
+    // This prevents visibility-only updates from resetting featured status.
+    if (featured !== undefined) {
+      patchData.featured = Boolean(featured);
+    }
+
+    if (isVisible !== undefined) {
+      patchData.isVisible = Boolean(isVisible);
+    }
+
+    const patch = client.patch(id).set(patchData);
 
     if (logoId) {
       patch.set({

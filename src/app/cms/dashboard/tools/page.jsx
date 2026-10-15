@@ -16,6 +16,7 @@ const emptyForm = {
   proficiency: 80,
   description: "",
   sortOrder: 0,
+  featured: false,
   isVisible: true,
   logoId: "",
   logoUrl: "",
@@ -83,16 +84,19 @@ export default function ToolsDashboardPage() {
 
   function startEditing(tool) {
     setEditingId(tool._id);
+
     setForm({
       name: tool.name || "",
       category: tool.category || "other",
       proficiency: tool.proficiency ?? 0,
       description: tool.description || "",
       sortOrder: tool.sortOrder ?? 0,
+      featured: tool.featured ?? false,
       isVisible: tool.isVisible ?? false,
       logoId: tool.logoId || "",
       logoUrl: tool.logoUrl || "",
     });
+
     setLogoFile(null);
     setError("");
     setSuccess("");
@@ -159,6 +163,8 @@ export default function ToolsDashboardPage() {
         ...form,
         proficiency: Number(form.proficiency),
         sortOrder: Number(form.sortOrder) || 0,
+        featured: Boolean(form.featured),
+        isVisible: Boolean(form.isVisible),
         logoId,
       };
 
@@ -173,8 +179,11 @@ export default function ToolsDashboardPage() {
       await readResponse(response);
 
       setSuccess(
-        editingId ? "Tool updated successfully." : "Tool added successfully.",
+        editingId
+          ? "Tool updated successfully."
+          : "Tool added successfully.",
       );
+
       resetForm();
       await loadTools();
     } catch (err) {
@@ -225,6 +234,7 @@ export default function ToolsDashboardPage() {
           proficiency: tool.proficiency ?? 0,
           description: tool.description || "",
           sortOrder: tool.sortOrder ?? 0,
+          featured: Boolean(tool.featured),
           isVisible: !tool.isVisible,
         }),
       });
@@ -234,6 +244,7 @@ export default function ToolsDashboardPage() {
       setSuccess(
         `${tool.name} is now ${tool.isVisible ? "hidden" : "visible"}.`,
       );
+
       await loadTools();
     } catch (err) {
       setError(err.message || "Could not change tool visibility.");
@@ -250,12 +261,14 @@ export default function ToolsDashboardPage() {
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-violet-600">
             LEEX Creative Studio
           </p>
+
           <h1 className="mt-3 text-3xl font-black sm:text-4xl">
             Tools & Technologies
           </h1>
+
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Manage your tool logos, categories, proficiency levels, and public
-            visibility.
+            Manage your tool logos, categories, proficiency levels, homepage
+            features, and public visibility.
           </p>
         </header>
 
@@ -283,6 +296,7 @@ export default function ToolsDashboardPage() {
               <h2 className="text-xl font-bold">
                 {editingId ? "Edit tool" : "Add a tool"}
               </h2>
+
               <p className="mt-1 text-sm text-slate-500">
                 Fields marked as required must be completed.
               </p>
@@ -337,7 +351,9 @@ export default function ToolsDashboardPage() {
                 htmlFor="tool-logo"
               >
                 Tool logo{" "}
-                {editingId ? "(optional when keeping the current logo)" : "*"}
+                {editingId
+                  ? "(optional when keeping the current logo)"
+                  : "*"}
               </label>
 
               <input
@@ -410,20 +426,42 @@ export default function ToolsDashboardPage() {
               </label>
             </div>
 
-            <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-slate-50 p-4">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-violet-100 bg-violet-50/70 p-4">
+              <input
+                type="checkbox"
+                name="featured"
+                checked={form.featured}
+                onChange={updateField}
+                className="mt-1 h-4 w-4 accent-violet-600"
+              />
+
+              <span>
+                <span className="block text-sm font-semibold">
+                  Featured on Homepage
+                </span>
+                <span className="mt-1 block text-xs leading-5 text-slate-500">
+                  Select this to include the tool in the homepage section.
+                  Only the first five featured, visible tools are displayed.
+                </span>
+              </span>
+            </label>
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 p-4">
               <input
                 type="checkbox"
                 name="isVisible"
                 checked={form.isVisible}
                 onChange={updateField}
-                className="h-4 w-4 accent-violet-600"
+                className="mt-1 h-4 w-4 accent-violet-600"
               />
+
               <span>
                 <span className="block text-sm font-semibold">
                   Show on public Tools page
                 </span>
-                <span className="mt-1 block text-xs text-slate-500">
-                  Hidden tools remain in your CMS.
+                <span className="mt-1 block text-xs leading-5 text-slate-500">
+                  Disable this to hide the tool from both the homepage and the
+                  public Tools page. Hidden tools remain in your CMS.
                 </span>
               </span>
             </label>
@@ -497,23 +535,35 @@ export default function ToolsDashboardPage() {
 
                     <div className="min-w-0 flex-1">
                       <h3 className="font-bold">{tool.name}</h3>
+
                       <p className="mt-1 text-xs text-slate-500">
-                        {categories.find((item) => item.value === tool.category)
-                          ?.label || tool.category}
+                        {categories.find(
+                          (item) => item.value === tool.category,
+                        )?.label || tool.category}
                       </p>
+
                       <p className="mt-2 text-xs text-slate-500">
                         Proficiency: {tool.proficiency ?? 0}% · Order:{" "}
                         {tool.sortOrder ?? 0}
                       </p>
-                      <span
-                        className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          tool.isVisible
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {tool.isVisible ? "Visible" : "Hidden"}
-                      </span>
+
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span
+                          className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            tool.isVisible
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {tool.isVisible ? "Visible" : "Hidden"}
+                        </span>
+
+                        {tool.featured && (
+                          <span className="inline-block rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700">
+                            Featured
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

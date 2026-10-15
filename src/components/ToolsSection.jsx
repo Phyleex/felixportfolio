@@ -7,7 +7,7 @@ export default async function ToolsSection() {
 
   try {
     tools = await client.fetch(FEATURED_TOOLS_QUERY);
-    tools = tools.slice(0, 5);
+    tools = tools.slice(0, 6);
   } catch (error) {
     console.error("Failed to load featured tools:", error);
   }
