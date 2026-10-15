@@ -1,23 +1,81 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+const fallbackSettings = {
+  contactEmail: "popoolafelixoladotun@gmail.com",
+  phone: "+2348100977788",
+  whatsappNumber2: "2349010466336",
+  xUrl: "https://x.com/phyleex",
+  tiktokUrl: "https://www.tiktok.com/@phyleex",
+};
+
 export default function ContactSection() {
-  const email = "popoolafelixoladotun@gmail.com";
+  const [settings, setSettings] = useState(fallbackSettings);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSettings() {
+      try {
+        const response = await fetch("/api/site-settings");
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        if (!active || !data.settings) return;
+
+        setSettings((previous) => ({
+          ...previous,
+          ...Object.fromEntries(
+            Object.entries(data.settings).filter(
+              ([, value]) => typeof value === "string" && value.trim() !== "",
+            ),
+          ),
+        }));
+      } catch (error) {
+        console.error("Unable to load contact settings:", error);
+      }
+    }
+
+    loadSettings();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const email = settings.contactEmail;
+  const phone = settings.phone;
+  const phoneDigits = phone.replace(/\D/g, "");
+  const whatsapp2Digits = (settings.whatsappNumber2 || "").replace(/\D/g, "");
 
   const emailLink = `mailto:${email}?subject=${encodeURIComponent(
-    "Project Inquiry - LEEX Creative Studio"
+    "Project Inquiry - LEEX Creative Studio",
   )}`;
 
   const whatsappMessage = encodeURIComponent(
-    "Hello LEEX Creative Studio, I would like to discuss a project."
+    "Hello LEEX Creative Studio, I would like to discuss a project.",
   );
 
   const whatsappNumbers = [
-    {
-      label: "WhatsApp 1",
-      link: "2348100977788",
-    },
-    {
-      label: "WhatsApp 2",
-      link: "2349010466336",
-    },
+    ...(phoneDigits
+      ? [
+          {
+            label: "WhatsApp 1",
+            link: phoneDigits,
+          },
+        ]
+      : []),
+    ...(whatsapp2Digits
+      ? [
+          {
+            label: "WhatsApp 2",
+            link: whatsapp2Digits,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -25,12 +83,10 @@ export default function ContactSection() {
       id="contact"
       className="relative isolate overflow-hidden bg-[#15132f] px-6 py-24 text-white sm:px-10 lg:px-16 lg:py-32"
     >
-      {/* Ambient background glows */}
       <div className="pointer-events-none absolute -left-40 top-10 -z-10 h-96 w-96 rounded-full bg-violet-600/15 blur-[130px]" />
       <div className="pointer-events-none absolute -right-32 bottom-0 -z-10 h-96 w-96 rounded-full bg-pink-600/10 blur-[130px]" />
 
       <div className="mx-auto max-w-7xl">
-        {/* Section heading */}
         <div className="mb-12 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
           <span className="h-2 w-2 rounded-full bg-gradient-to-r from-violet-400 to-pink-400" />
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200">
@@ -107,14 +163,13 @@ export default function ContactSection() {
                 <div className="mt-4 flex flex-wrap gap-3">
                   {whatsappNumbers.map((contact) => (
                     <a
-                      key={contact.link}
+                      key={contact.label}
                       href={`https://wa.me/${contact.link}?text=${whatsappMessage}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Chat with LEEX Creative Studio using ${contact.label}`}
                       className="inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-green-400/50 hover:bg-green-500/10"
                     >
-                      {/* WhatsApp logo */}
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 32 32"
@@ -138,25 +193,27 @@ export default function ContactSection() {
                   Phone
                 </p>
 
-                <a
-                  href="tel:+2348100977788"
-                  aria-label="Call LEEX Creative Studio"
-                  className="mt-4 inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-fuchsia-400/50 hover:bg-fuchsia-500/10"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    className="h-5 w-5 text-fuchsia-300"
-                    aria-hidden="true"
+                {phoneDigits && (
+                  <a
+                    href={`tel:${phoneDigits}`}
+                    aria-label="Call LEEX Creative Studio"
+                    className="mt-4 inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-fuchsia-400/50 hover:bg-fuchsia-500/10"
                   >
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z" />
-                  </svg>
-                  Call LEEX
-                  <span>↗</span>
-                </a>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      className="h-5 w-5 text-fuchsia-300"
+                      aria-hidden="true"
+                    >
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.84.58 2.8.7A2 2 0 0 1 22 16.92Z" />
+                    </svg>
+                    Call LEEX
+                    <span>↗</span>
+                  </a>
+                )}
               </div>
 
               {/* Social links */}
@@ -166,23 +223,27 @@ export default function ContactSection() {
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <a
-                    href="https://www.tiktok.com/@phyleex"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-violet-400/50 hover:bg-violet-500/10"
-                  >
-                    TikTok <span>↗</span>
-                  </a>
+                  {settings.tiktokUrl && (
+                    <a
+                      href={settings.tiktokUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-violet-400/50 hover:bg-violet-500/10"
+                    >
+                      TikTok <span>↗</span>
+                    </a>
+                  )}
 
-                  <a
-                    href="https://x.com/phyleex"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-pink-400/50 hover:bg-pink-500/10"
-                  >
-                    X <span>↗</span>
-                  </a>
+                  {settings.xUrl && (
+                    <a
+                      href={settings.xUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium transition duration-300 hover:border-pink-400/50 hover:bg-pink-500/10"
+                    >
+                      X <span>↗</span>
+                    </a>
+                  )}
                 </div>
               </div>
             </div>

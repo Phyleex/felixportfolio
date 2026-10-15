@@ -1,19 +1,61 @@
-
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+
+const fallbackSettings = {
+  studioName: "LEEX Creative Studio",
+  tagline: "Creative Studio",
+};
+
+const links = [
+  { name: "Work", href: "#work" },
+  { name: "About", href: "#about" },
+  { name: "Services", href: "#services" },
+  { name: "Tools", href: "#tools" },
+  { name: "Contact", href: "#contact" },
+];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [settings, setSettings] = useState(fallbackSettings);
 
-  const links = [
-    { name: "Work", href: "#work" },
-    { name: "About", href: "#about" },
-    { name: "Services", href: "#services" },
-    { name: "Tools", href: "#tools" },
-    { name: "Contact", href: "#contact" },
-  ];
+  useEffect(() => {
+    let active = true;
+
+    async function loadSettings() {
+      try {
+        const response = await fetch("/api/site-settings", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        if (active && data.settings) {
+          setSettings({
+            studioName:
+              data.settings.studioName?.trim() || fallbackSettings.studioName,
+            tagline: data.settings.tagline?.trim() || fallbackSettings.tagline,
+          });
+        }
+      } catch (error) {
+        console.error("Unable to load navbar settings:", error);
+      }
+    }
+
+    loadSettings();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Keep the studio name and decorative logo dot separate.
+  const brandName = settings.studioName.replace(/\s+Creative Studio$/i, "");
+
+  const tagline = settings.tagline || fallbackSettings.tagline;
 
   return (
     <nav className="fixed left-0 top-0 z-50 w-full border-b border-white/10 bg-[#15132f]/90 text-white shadow-lg shadow-black/5 backdrop-blur-xl">
@@ -23,14 +65,15 @@ export default function Navbar() {
           href="#top"
           onClick={() => setMenuOpen(false)}
           className="group relative z-10"
-          aria-label="LEEX Creative Studio homepage"
+          aria-label={`${settings.studioName} homepage`}
         >
           <div className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-2xl font-black tracking-[-0.06em] text-transparent transition-opacity group-hover:opacity-80">
-            LEEX<span className="text-white">.</span>
+            {brandName}
+            <span className="text-white">.</span>
           </div>
 
           <div className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.25em] text-slate-400 transition-colors group-hover:text-violet-300">
-            Creative Studio
+            {tagline}
           </div>
         </Link>
 
@@ -91,9 +134,7 @@ export default function Navbar() {
                 className="flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium text-slate-200 transition-colors duration-200 hover:bg-white/[0.05] hover:text-violet-300"
               >
                 <span>{link.name}</span>
-                <span className="text-sm text-slate-500">
-                  0{index + 1}
-                </span>
+                <span className="text-sm text-slate-500">0{index + 1}</span>
               </a>
             ))}
 
@@ -111,4 +152,3 @@ export default function Navbar() {
     </nav>
   );
 }
-
